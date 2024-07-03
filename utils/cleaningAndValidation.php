@@ -30,30 +30,20 @@ $_POST = filter_input_array(INPUT_POST, [
     $errors['title'] = ERROR_REQUIRED;
   } elseif (mb_strlen($title) < 5) {
     $errors['title'] = ERROR_TITLE_TOO_SHORT;
-  } elseif (mb_strlen($title) > 50) {
-    $errors['title'] = ERROR_TITLE_TOO_LONG;
-  } elseif (array_search(mb_strtolower($title), array_map(fn ($el) => mb_strtolower($el['title']), $articles))) {
-    $errors['title'] = ERROR_TITLE_ALREADY_EXISTS;
   }
 
   if (!$image) {
     $errors['image'] = ERROR_REQUIRED;
   } elseif (!filter_var($image, FILTER_VALIDATE_URL)) {
     $errors['image'] = ERROR_IMAGE_URL;
-  } elseif (mb_strlen($image) > 150) {
-    $errors['image'] = ERROR_URL_TOO_LONG;
   }
 
   if (!$category) {
     $errors['category'] = ERROR_REQUIRED;
-  } elseif (!in_array($category, $availableCategories)) {
-    $error['category'] = ERROR_CATEGORY_DOES_NOT_EXIST;
   }
 
   if (!$content) {
     $errors['content'] = ERROR_REQUIRED;
   } elseif (mb_strlen($content) < 50) {
     $errors['content'] = ERROR_CONTENT_TOO_SHORT;
-  } elseif (mb_strlen($content) > 1200 ) {
-    $errors['content'] = ERROR_CONTENT_TOO_LONG;
   }

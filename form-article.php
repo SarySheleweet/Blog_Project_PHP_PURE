@@ -1,6 +1,26 @@
 <?php
 
-$filename = __DIR__ . '/data/articles.json';
+$pdo = require_once 'database.php';
+$statementReadArticle = $pdo->prepare('SELECT * FROM article WHERE id=:id');
+$statementCreateArticle = $pdo->prepare('INSERT INTO article (
+title,
+category,
+content,
+image)
+VALUES (
+:title,
+:category,
+:content,
+:image)');
+$statementUpdateArticle = $pdo->prepare('UPDATE article SET 
+title=:title,
+category=:category,
+content=:content,
+image=:image
+WHERE id=:id;'
+);
+
+
 $category = '';
 $errors = [
   'title' => '',
@@ -9,17 +29,13 @@ $errors = [
   'content' => ''
 ];
 
-
-if (file_exists($filename)) {
-  $articles = json_decode(file_get_contents($filename), true) ?? [];
-}
-
 $_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $id = $_GET['id'] ?? '';
 
 if($id) {
-  $articleIndex = array_search($id, array_column($articles, 'id'));
-  $article = $articles[$articleIndex];
+  $statementReadArticle->bindValue(':id', $id);
+  $statementReadArticle->execute();
+  $article = $statementReadArticle->fetch();
   $title = $article['title'];
   $image = $article['image'];
   $category = $article['category'];
@@ -32,20 +48,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty(array_filter($errors, fn ($e) => $e !== ''))) {
     if($id) {
-        $articles[$articleIndex]['title'] = $title;
-        $articles[$articleIndex]['image'] = $image;
-        $articles[$articleIndex]['category'] = $category;
-        $artics[$articleIndex]['content'] = $content;
+        $statementUpdateArticle->bindValue(':title', $title);
+        $statementUpdateArticle->bindValue(':content', $content);
+        $statementUpdateArticle->bindValue(':category', $category);
+        $statementUpdateArticle->bindValue(':image', $image);
+        $statementUpdateArticle->bindValue(':id', $id);
+        $statementUpdateArticle->execute();
     } else {
-      $articles = [...$articles, [
-        'title' => $title,
-        'image' => $image,
-        'category' => $category,
-        'content' => $content,
-        'id' => time()
-      ]];
+    $statementCreateArticle->bindValue(':title', $title);
+    $statementCreateArticle->bindValue(':category', $category);
+    $statementCreateArticle->bindValue(':content', $content);
+    $statementCreateArticle->bindValue(':image', $image);  
+    $statementCreateArticle->execute();
     }
-    file_put_contents($filename, json_encode($articles));
     header('Location: /');
   }
 }

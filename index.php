@@ -1,15 +1,16 @@
 <?php
-
-$filename = __DIR__ . '/data/articles.json';
-$articles = [];
+$pdo = require_once './database.php';
+$statement = $pdo->prepare('SELECT * FROM article');
+$statement->execute();
+$articles = $statement->fetchALL();
 $categories = [];
 
 
 $_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $selectedCat = $_GET['cat'] ?? [];
 
-if (file_exists($filename)) {
-  $articles = json_decode(file_get_contents($filename), true) ?? [];
+if (count($articles)) {
+  
   $categories1 = array_map(fn($e) => $e['category'], $articles);
   $categories = array_reduce($categories1, function ($acc, $e) {
     if(isset($acc[$e])) {
