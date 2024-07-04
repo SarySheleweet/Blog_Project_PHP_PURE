@@ -1,26 +1,5 @@
 <?php
-
-$pdo = require_once 'database.php';
-$statementReadArticle = $pdo->prepare('SELECT * FROM article WHERE id=:id');
-$statementCreateArticle = $pdo->prepare('INSERT INTO article (
-title,
-category,
-content,
-image)
-VALUES (
-:title,
-:category,
-:content,
-:image)');
-$statementUpdateArticle = $pdo->prepare('UPDATE article SET 
-title=:title,
-category=:category,
-content=:content,
-image=:image
-WHERE id=:id;'
-);
-
-
+$articleDB = require_once __DIR__. '/./database/models/ArticleDb.php';
 $category = '';
 $errors = [
   'title' => '',
@@ -33,9 +12,7 @@ $_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $id = $_GET['id'] ?? '';
 
 if($id) {
-  $statementReadArticle->bindValue(':id', $id);
-  $statementReadArticle->execute();
-  $article = $statementReadArticle->fetch();
+  $article = $articleDB->fetchOneArticle($id);
   $title = $article['title'];
   $image = $article['image'];
   $category = $article['category'];
@@ -48,18 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty(array_filter($errors, fn ($e) => $e !== ''))) {
     if($id) {
-        $statementUpdateArticle->bindValue(':title', $title);
-        $statementUpdateArticle->bindValue(':content', $content);
-        $statementUpdateArticle->bindValue(':category', $category);
-        $statementUpdateArticle->bindValue(':image', $image);
-        $statementUpdateArticle->bindValue(':id', $id);
-        $statementUpdateArticle->execute();
+        $article['title'] = $title;
+        $article['category'] = $category;
+        $article['content'] = $content;
+        $article['image'] = $image;
+        $articleDB->updateArticle($article);
+        
+        // $statementUpdateArticle->bindValue(':title', $title);
+        // $statementUpdateArticle->bindValue(':content', $content);
+        // $statementUpdateArticle->bindValue(':category', $category);
+        // $statementUpdateArticle->bindValue(':image', $image);
+        // $statementUpdateArticle->bindValue(':id', $id);
+        // $statementUpdateArticle->execute();
     } else {
-    $statementCreateArticle->bindValue(':title', $title);
-    $statementCreateArticle->bindValue(':category', $category);
-    $statementCreateArticle->bindValue(':content', $content);
-    $statementCreateArticle->bindValue(':image', $image);  
-    $statementCreateArticle->execute();
+        $articleDB->createArticle([
+            'title' => $title,
+            'content' => $content,
+            'category' => $category,
+            'image' => $image
+        ]);
+    // $statementCreateArticle->bindValue(':title', $title);
+    // $statementCreateArticle->bindValue(':category', $category);
+    // $statementCreateArticle->bindValue(':content', $content);
+    // $statementCreateArticle->bindValue(':image', $image);  
+    // $statementCreateArticle->execute();
     }
     header('Location: /');
   }

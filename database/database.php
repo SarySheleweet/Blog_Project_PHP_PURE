@@ -1,4 +1,5 @@
 <?php
+
 // on initialize la connexion à la DB avec les valeurs de DNS user et password
 $dns = 'mysql:host=localhost;dbname=blog-dyma';
 $user = 'root';
